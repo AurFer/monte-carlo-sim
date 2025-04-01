@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def monte_carlo_simulation(data, num_simulations=1000):
-    durations = (data['Clôture'] - data['Activation']).dt.days
+    durations = (data['Clôture'] - data['Activation']).dt.total_seconds() / 86400  # Convertir en jours décimaux
     simulated_durations = np.random.choice(durations, size=(num_simulations, len(durations)), replace=True)
     completion_times = simulated_durations.sum(axis=1)
     return completion_times
