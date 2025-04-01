@@ -8,7 +8,7 @@ def monte_carlo_simulation(data, num_simulations=1000):
     for _ in range(num_simulations):
         sampled_tasks = data.sample(frac=1, replace=True)  # Échantillon aléatoire des tâches
         sampled_tasks = sampled_tasks.copy()
-        sampled_tasks['Simulated_Activation'] = np.random.choice(data['Activation'], size=len(sampled_tasks), replace=True)
+        sampled_tasks['Simulated_Activation'] = sampled_tasks['Activation'].min() + pd.to_timedelta(np.random.randint(0, (sampled_tasks['Activation'].max() - sampled_tasks['Activation'].min()).days, size=len(sampled_tasks)), unit='D')
         sampled_tasks['Simulated_Clôture'] = sampled_tasks['Simulated_Activation'] + pd.to_timedelta(sampled_tasks['Durée'], unit='D')
         project_completion_time = (sampled_tasks['Simulated_Clôture'].max() - sampled_tasks['Simulated_Activation'].min()).days
         simulated_completion_times.append(project_completion_time)
