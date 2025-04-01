@@ -4,14 +4,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def monte_carlo_simulation(data, num_simulations=1000):
-    simulated_completion_dates = []
+    simulated_completion_times = []
     for _ in range(num_simulations):
         sampled_tasks = data.sample(frac=1, replace=True)  # Échantillon aléatoire des tâches
-        sampled_tasks['Simulated_Clôture'] = sampled_tasks['Activation'] + pd.to_timedelta(sampled_tasks['Durée'], unit='D')
-        project_completion = sampled_tasks['Simulated_Clôture'].max()
-        simulated_completion_dates.append((project_completion - sampled_tasks['Activation'].min()).days)
+        sampled_tasks = sampled_tasks.copy()
+        sampled_tasks['Simulated_Activation'] = np.random.choice(data['Activation'], size=len(sampled_tasks), replace=True)
+        sampled_tasks['Simulated_Clôture'] = sampled_tasks['Simulated_Activation'] + pd.to_timedelta(sampled_tasks['Durée'], unit='D')
+        project_completion_time = (sampled_tasks['Simulated_Clôture'].max() - sampled_tasks['Simulated_Activation'].min()).days
+        simulated_completion_times.append(project_completion_time)
     
-    return simulated_completion_dates
+    return simulated_completion_times
 
 st.title("Simulation de Monte Carlo pour la Prévision de Livraison")
 
