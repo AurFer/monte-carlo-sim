@@ -4,15 +4,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def monte_carlo_simulation(data, num_simulations=1000):
-    start_date = data['Activation'].min()
-    durations = (data['Clôture'] - data['Activation']).dt.days  # Durée en jours
-    
     simulated_completion_dates = []
     for _ in range(num_simulations):
-        sampled_durations = np.random.choice(durations, size=len(durations), replace=True)  # Tirage aléatoire
-        sampled_end_dates = data['Activation'] + pd.to_timedelta(sampled_durations, unit='D')
-        project_completion = sampled_end_dates.max()  # Prendre la date de fin la plus tardive
-        simulated_completion_dates.append((project_completion - start_date).days)
+        sampled_tasks = data.sample(frac=1, replace=True)  # Échantillon aléatoire des tâches
+        sampled_tasks['Simulated_Clôture'] = sampled_tasks['Activation'] + pd.to_timedelta(sampled_tasks['Durée'], unit='D')
+        project_completion = sampled_tasks['Simulated_Clôture'].max()
+        simulated_completion_dates.append((project_completion - sampled_tasks['Activation'].min()).days)
     
     return simulated_completion_dates
 
