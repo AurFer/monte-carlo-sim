@@ -4,14 +4,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def monte_carlo_simulation(data, num_simulations=1000):
-    durations = (data['Clôture'] - data['Activation']).dt.days  # Calculer les durées réelles en jours
+    start_date = data['Activation'].min()
+    durations = (data['Clôture'] - data['Activation']).dt.days  # Durée en jours
     
-    simulated_durations = []
+    simulated_completion_dates = []
     for _ in range(num_simulations):
         sampled_durations = np.random.choice(durations, size=len(durations), replace=True)  # Tirage aléatoire
-        simulated_durations.append(sampled_durations.sum())  # Somme des durées simulées
+        sampled_end_dates = data['Activation'] + pd.to_timedelta(sampled_durations, unit='D')
+        project_completion = sampled_end_dates.max()  # Prendre la date de fin la plus tardive
+        simulated_completion_dates.append((project_completion - start_date).days)
     
-    return simulated_durations
+    return simulated_completion_dates
 
 st.title("Simulation de Monte Carlo pour la Prévision de Livraison")
 
