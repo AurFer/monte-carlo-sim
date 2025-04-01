@@ -4,9 +4,18 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def monte_carlo_simulation(data, num_simulations=1000):
-    durations = (data['Clôture'] - data['Activation']).dt.total_seconds() / 86400  # Convertir en jours décimaux
-    simulated_durations = np.random.choice(durations, size=(num_simulations, len(durations)), replace=True)
-    completion_times = simulated_durations.sum(axis=1)
+    data = data.sort_values(by='Activation')  # Trier par date d'activation
+    durations = (data['Clôture'] - data['Activation']).dt.total_seconds() / 86400  # Convertir en jours
+    
+    simulated_end_dates = []
+    for _ in range(num_simulations):
+        shuffled_durations = np.random.choice(durations, size=len(durations), replace=True)
+        simulated_tasks = data[['Activation']].copy()
+        simulated_tasks['Durée'] = shuffled_durations
+        simulated_tasks['Clôture'] = simulated_tasks['Activation'] + pd.to_timedelta(simulated_tasks['Durée'], unit='D')
+        simulated_end_dates.append(simulated_tasks['Clôture'].max())
+    
+    completion_times = [(end_date - data['Activation'].min()).days for end_date in simulated_end_dates]
     return completion_times
 
 st.title("Simulation de Monte Carlo pour la Prévision de Livraison")
