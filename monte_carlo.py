@@ -4,19 +4,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def monte_carlo_simulation(data, num_simulations=1000):
-    data = data.sort_values(by='Activation')  # Trier par date d'activation
-    durations = (data['Clôture'] - data['Activation']).dt.total_seconds() / 86400  # Convertir en jours
+    durations = (data['Clôture'] - data['Activation']).dt.days  # Calculer les durées réelles en jours
     
-    simulated_end_dates = []
+    simulated_durations = []
     for _ in range(num_simulations):
-        shuffled_durations = np.random.choice(durations, size=len(durations), replace=True)
-        simulated_tasks = data[['Activation']].copy()
-        simulated_tasks['Durée'] = shuffled_durations
-        simulated_tasks['Clôture'] = simulated_tasks['Activation'] + pd.to_timedelta(simulated_tasks['Durée'], unit='D')
-        simulated_end_dates.append(simulated_tasks['Clôture'].max())
+        sampled_durations = np.random.choice(durations, size=len(durations), replace=True)  # Tirage aléatoire
+        simulated_durations.append(sampled_durations.sum())  # Somme des durées simulées
     
-    completion_times = [(end_date - data['Activation'].min()).days for end_date in simulated_end_dates]
-    return completion_times
+    return simulated_durations
 
 st.title("Simulation de Monte Carlo pour la Prévision de Livraison")
 
@@ -24,6 +19,7 @@ uploaded_file = st.file_uploader("Charge un fichier CSV avec les colonnes 'Activ
 
 if uploaded_file:
     data = pd.read_csv(uploaded_file, sep=";", parse_dates=['Activation', 'Clôture'])
+    data['Durée'] = (data['Clôture'] - data['Activation']).dt.days  # Ajouter une colonne de durée
     st.write("Aperçu des données :", data.head())
     
     num_simulations = st.slider("Nombre de simulations", 100, 5000, 1000)
