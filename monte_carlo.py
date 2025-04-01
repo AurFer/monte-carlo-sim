@@ -14,7 +14,7 @@ st.title("Simulation de Monte Carlo pour la Prévision de Livraison")
 uploaded_file = st.file_uploader("Charge un fichier CSV avec les colonnes 'Activation' et 'Clôture' (format YYYY-MM-DD)", type=["csv"])
 
 if uploaded_file:
-    data = pd.read_csv(uploaded_file, parse_dates=['Activation', 'Clôture'])
+    data = pd.read_csv(uploaded_file, sep=";", parse_dates=['Activation', 'Clôture'])
     st.write("Aperçu des données :", data.head())
     
     num_simulations = st.slider("Nombre de simulations", 100, 5000, 1000)
