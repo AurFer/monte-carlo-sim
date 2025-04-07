@@ -72,6 +72,7 @@ if uploaded_file:
                 st.line_chart(df_probas.set_index("Nombre d'items"))
                 meilleur_estimate = df_probas[df_probas["Probabilité de livraison"] >= 0.85].head(1)
                 if not meilleur_estimate.empty:
-                    st.success(f"Tu as 85% de chances de livrer **{int(meilleur_estimate[\"Nombre d'items\"].values[0])} items** ou plus d'ici {date_cible}.")
+                    nombre_items = int(meilleur_estimate.loc[:, "Nombre d'items"].values[0])
+                    st.success(f"Tu as 85% de chances de livrer **{nombre_items} items** ou plus d'ici {date_cible}.")
                 else:
                     st.warning("Aucun nombre d'items n'atteint 85% de chances d'être livré à cette date.")
