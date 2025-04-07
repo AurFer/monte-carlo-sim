@@ -47,16 +47,31 @@ if uploaded_file:
             if st.button("Lancer la simulation"):
                 sims = monte_carlo_cycle_times(cycle_times, num_simulations, nb_items)
                 today = pd.to_datetime("today")
-                # Correction ici : ajouter les deltas jour par jour par ligne
                 dates_simulees = np.array([[today + pd.Timedelta(days=delta) for delta in ligne] for ligne in sims])
-
                 dernieres_dates = dates_simulees[:, -1]  # Date de livraison du dernier item
+
                 hist = pd.Series(dernieres_dates).dt.floor('D').value_counts(normalize=True).sort_index()
 
-                fig, ax = plt.subplots(figsize=(10,4))
-                cmap = sns.light_palette("green", as_cmap=True)
-                sns.heatmap([hist.values], ax=ax, cmap=cmap, cbar=True, xticklabels=hist.index.strftime('%Y-%m-%d'), yticklabels=["Probabilité"])
-                plt.xticks(rotation=45, ha="right")
+                cumul = hist.cumsum()
+                seuils = {p: cumul[cumul >= p].index[0] for p in [0.5, 0.7, 0.85, 0.95] if any(cumul >= p)}
+
+                st.markdown(f"""
+                ### Forecast pour livrer {nb_items} items à partir d'aujourd'hui
+                {seuils.get(0.95, 'N/A').strftime('%B %d')} (**95%**)  
+                {seuils.get(0.85, 'N/A').strftime('%B %d')} (**85%**)  
+                {seuils.get(0.7, 'N/A').strftime('%B %d')} (**70%**)  
+                {seuils.get(0.5, 'N/A').strftime('%B %d')} (**50%**)  
+                """)
+
+                fig, ax = plt.subplots(figsize=(10, 4))
+                ax.bar(hist.index, hist.values, width=1.0, color="green", alpha=0.6)
+                for seuil, color in zip([0.5, 0.7, 0.85, 0.95], ["orange", "gold", "limegreen", "darkgreen"]):
+                    if seuil in seuils:
+                        ax.axvline(seuils[seuil], color=color, linestyle="--", label=f"{int(seuil*100)}%")
+                ax.legend()
+                ax.set_title("Monte Carlo chart")
+                ax.set_ylabel("Fréquence relative")
+                fig.autofmt_xdate()
                 st.pyplot(fig)
 
         else:
