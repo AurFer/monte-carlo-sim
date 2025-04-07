@@ -47,7 +47,8 @@ if uploaded_file:
             if st.button("Lancer la simulation"):
                 sims = monte_carlo_cycle_times(cycle_times, num_simulations, nb_items)
                 today = pd.to_datetime("today")
-                dates_simulees = today + pd.to_timedelta(sims, unit='D')
+                # Correction ici : ajouter les deltas jour par jour par ligne
+                dates_simulees = np.array([[today + pd.Timedelta(days=delta) for delta in ligne] for ligne in sims])
 
                 dernieres_dates = dates_simulees[:, -1]  # Date de livraison du dernier item
                 hist = pd.Series(dernieres_dates).dt.floor('D').value_counts(normalize=True).sort_index()
