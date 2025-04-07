@@ -85,7 +85,25 @@ if uploaded_file:
                     pourcentage_livres = (sims[:, -1] <= horizon).mean()
                     probas.append((n, pourcentage_livres))
                 df_probas = pd.DataFrame(probas, columns=["Nombre d'items", "Probabilité de livraison"])
-                st.line_chart(df_probas.set_index("Nombre d'items"))
+
+                st.markdown("### Probabilité de livraison avant la date cible")
+                seuils = {p: df_probas[df_probas["Probabilité de livraison"] >= p]["Nombre d'items"].min() for p in [0.5, 0.7, 0.85, 0.95]}
+
+                for p, val in seuils.items():
+                    if not np.isnan(val):
+                        st.markdown(f"{val} items (**{int(p*100)}%**) chance de livraison")
+
+                fig, ax = plt.subplots(figsize=(10, 4))
+                ax.plot(df_probas["Nombre d'items"], df_probas["Probabilité de livraison"], color="green")
+                for seuil, color in zip([0.5, 0.7, 0.85, 0.95], ["orange", "gold", "limegreen", "darkgreen"]):
+                    if seuils[seuil] is not np.nan:
+                        ax.axvline(seuils[seuil], color=color, linestyle="--", label=f"{int(seuil*100)}%")
+                ax.set_title("Monte Carlo chart – Livraison avant date cible")
+                ax.set_xlabel("Nombre d'items")
+                ax.set_ylabel("Probabilité de livraison")
+                ax.legend()
+                st.pyplot(fig)
+
                 meilleur_estimate = df_probas[df_probas["Probabilité de livraison"] >= 0.85].head(1)
                 if not meilleur_estimate.empty:
                     nombre_items = int(meilleur_estimate.loc[:, "Nombre d'items"].values[0])
