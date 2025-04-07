@@ -87,16 +87,20 @@ if uploaded_file:
                 df_probas = pd.DataFrame(probas, columns=["Nombre d'items", "Probabilité de livraison"])
 
                 st.markdown("### Probabilité de livraison avant la date cible")
-                seuils = {p: df_probas[df_probas["Probabilité de livraison"] >= p]["Nombre d'items"].min() for p in [0.5, 0.7, 0.85, 0.95]}
+                seuils = {}
+                for p in [0.5, 0.7, 0.85, 0.95]:
+                    possibles = df_probas[df_probas["Probabilité de livraison"] >= p]["Nombre d'items"]
+                    if not possibles.empty:
+                        seuils[p] = possibles.min()
 
-                for p, val in seuils.items():
-                    if not np.isnan(val):
-                        st.markdown(f"{val} items (**{int(p*100)}%**) chance de livraison")
+                for p in [0.5, 0.7, 0.85, 0.95]:
+                    if p in seuils:
+                        st.markdown(f"{seuils[p]} items (**{int(p*100)}%**) chance de livraison")
 
                 fig, ax = plt.subplots(figsize=(10, 4))
                 ax.plot(df_probas["Nombre d'items"], df_probas["Probabilité de livraison"], color="green")
                 for seuil, color in zip([0.5, 0.7, 0.85, 0.95], ["orange", "gold", "limegreen", "darkgreen"]):
-                    if seuils[seuil] is not np.nan:
+                    if seuil in seuils:
                         ax.axvline(seuils[seuil], color=color, linestyle="--", label=f"{int(seuil*100)}%")
                 ax.set_title("Monte Carlo chart – Livraison avant date cible")
                 ax.set_xlabel("Nombre d'items")
